@@ -28,8 +28,8 @@ public class NopTimer extends TimerTask
 									+  "LeftGoto: %d, ChamTemp: %.1f, LidTemp: %.1f, SinkTemp: %.1f, Error: %d", 
 									rx.getState(), rx.getCurrent_Action(), rx.getTotal_Action(), rx.getTotal_TimeLeft(), 
 									rx.getSec_TimeLeft(), rx.getCurrent_Loop(), chamber_temp, lid_temp, heatsink_temp, rx.getError());
-		Functions.log(message);
-		Functions.logTemperature(chamber_temp, lid_temp, heatsink_temp, false);
+//		Functions.log(message);
+//		Functions.logTemperature(chamber_temp, lid_temp, heatsink_temp, false);
 	}
 
 	@Override

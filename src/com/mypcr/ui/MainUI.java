@@ -610,7 +610,8 @@ public class MainUI extends JFrame implements Handler, DeviceChange, KeyListener
 				{
 					Functions.setLogging(true);
 					
-					Functions.log("시작 버튼을 통해 PCR 이 시작됨");
+//					Functions.log("시작 버튼을 통해 PCR 이 시작됨");
+					Functions.logOrigin( "# Start with long run test" );
 					
 					// 불러온 프로토콜 파일이 있을 경우에만 동작
 					if( IsProtocolRead )
@@ -722,6 +723,7 @@ public class MainUI extends JFrame implements Handler, DeviceChange, KeyListener
 				// Start 이후, 프로토콜들을 전부 전송 했을 경우에 NOP 타이머를 동작 시키기 위한 메시지
 			case MESSAGE_TASK_WRITE_END:
 				m_PCRTask.killTimer(GoTimer.TIMER_NUMBER);
+				Functions.logOrigin( String.format( "\n%10s\t%10s\t%10s\t%10s\t%10s", "Date", "Time",  "Run count", "Delta(ms)", "_Delta(ms)" ) );
 				
 				try
 				{

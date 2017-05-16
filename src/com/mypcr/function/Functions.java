@@ -31,7 +31,9 @@ public class Functions
 	private static String					tempLogPath			= null;
 	private static String					tempLogFilePath		= null;
 	private static String					protocolPath		= null;
+	private static String					fileFormat			= String.format( "%10s\t%10s", "yyyy-MM-dd", "HH-mm-ss" );
 	private static final SimpleDateFormat	df					= new SimpleDateFormat( "yyyy-MM-dd_HH-mm-ss" );
+	private static final SimpleDateFormat	df_cou				= new SimpleDateFormat( fileFormat );
 	private static boolean				isLogging			= false;
 	private static String					serialNumber		= null;
 
@@ -39,43 +41,6 @@ public class Functions
 	private static long					tempLogStartTime	= 0;
 
 	private String serialNumber_temp = null;
-	/* v2.52 log file create change
-	static
-	{
-		String os = System.getProperty( "os.name", "win" ).toLowerCase( );
-
-		if( os.indexOf( "win" ) != -1 )
-		{
-			isMac = false;
-		}
-		else if( os.indexOf( "mac" ) != -1 )
-		{
-			isMac = true;
-		}
-
-		if( !isMac ) pcrPath = "C:\\mPCR";
-		else
-		{
-			String classPath = System.getProperty( "java.class.path" );
-			String[] tempPath = classPath.split( "/" );
-			for( int i = 0; i < tempPath.length - 1; ++i )
-			{
-				pcrPath += tempPath[i] + "/";
-			}
-
-			pcrPath += "mPCR";
-		}
-
-		logpath = pcrPath + ( isMac ? "/log" : "\\log" );
-		tempLogPath = pcrPath + ( isMac ? "/temperature" : "\\temperature" );
-		protocolPath = pcrPath + ( isMac ? "/protocols" : "\\protocols" );
-
-		String dateFormat = df.format( new Date( ) );
-		logFilePath = logpath
-				+ ( isMac ? ( "/log_" + serialNumber + "_" + dateFormat + ".txt" ) 
-						: ( "\\log_" + serialNumber + "_"+ dateFormat + ".txt" ) );
-	}
-	*/
 	
 	// 2015. 12. 15
 	// log file create subsequent to setup serial number
@@ -128,7 +93,7 @@ public class Functions
 			logFile.mkdirs( );
 			logFile = new File( logFilePath );
 
-			String dateFormat = "[" + df.format( new Date( ) ) + "," + serialNumber + "] ";
+			String dateFormat = String.format( "%10s\t", df_cou.format(  new Date() ) );
 
 			try
 			{
@@ -138,7 +103,27 @@ public class Functions
 			}
 			catch( IOException e )
 			{
-				// 		TODO Auto-generated catch block
+				e.printStackTrace( );
+			}
+		}
+	}
+	
+	public static void logOrigin( String message )
+	{
+		if( isLogging )
+		{
+			File logFile = new File( logpath );
+			logFile.mkdirs( );
+			logFile = new File( logFilePath );
+
+			try
+			{
+				PrintWriter out = new PrintWriter( new FileWriter( logFile, true ) );
+				out.println( message );
+				out.close( );
+			}
+			catch( IOException e )
+			{
 				e.printStackTrace( );
 			}
 		}
