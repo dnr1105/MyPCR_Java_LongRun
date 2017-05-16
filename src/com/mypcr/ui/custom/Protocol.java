@@ -678,16 +678,16 @@ public class Protocol implements FocusListener, KeyListener {
 		else{
 			if( source == text_goto ){
 				String gotoStr = text_goto.getText();
-				if( !(gotoStr.length() > 0 && gotoStr.length() <= 3) ){
-					JOptionPane.showMessageDialog(null, "Goto range : 1~999");
+				if( !(gotoStr.length() > 0 && gotoStr.length() <= 10) ){
+					JOptionPane.showMessageDialog(null, "Goto range : 1~999999999");
 					text_goto.setText(gotoLabel + "");
 					return;
 				}
 				
 				int targetLabel = Integer.parseInt(gotoStr);
 				
-				if( !(targetLabel >= 1 && targetLabel <= 999) ){
-					JOptionPane.showMessageDialog(null, "Goto range : 1~999");
+				if( !(targetLabel >= 1 && targetLabel <= 999999999) ){
+					JOptionPane.showMessageDialog(null, "Goto range : 1~999999999");
 					text_goto.setText(gotoLabel + "");
 					return;
 				}
@@ -700,8 +700,8 @@ public class Protocol implements FocusListener, KeyListener {
 			}
 			else if( source == text_repeat ){
 				String repeatStr = text_repeat.getText();
-				if( !(repeatStr.length() > 0 && repeatStr.length() <= 3) ){
-					JOptionPane.showMessageDialog(null, "Repeat range : 1~999");
+				if( !(repeatStr.length() > 0 && repeatStr.length() <= 10) ){
+					JOptionPane.showMessageDialog(null, "Repeat range : 1~999999999");
 					text_repeat.setText(repeat + "");
 					return;
 				}
