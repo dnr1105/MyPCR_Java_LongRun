@@ -116,6 +116,25 @@ public class PCR_Task
 		}
 	}
 	
+	// ju
+	private long startTime = 0;
+	private long currentTime = 0;
+	private long delta = 0;
+	private long _delta = 0;
+	private int longRunCount = 0;
+	
+	public boolean isLongRunTestMode = false;
+	public boolean longRunFlag = false;
+	public boolean longRunRealFinish = true;
+	
+	int runTime = 0;
+	int targetCount = 0;
+	boolean startFlag = true;
+	boolean currentFlag = false;
+	boolean isTempFirst = true; // true = d, false = _d
+	boolean runReady = false;
+	boolean newStart = true;
+	
 	public void Calc_Temp()
 	{
 		double Chamber_Temp, Heater_Temp;
@@ -125,6 +144,91 @@ public class PCR_Task
 		String heater = String.format("%4.1f กษ", Heater_Temp);
 		m_MainUI.getStatusText().setMessage(chamber, 1);
 		m_MainUI.getStatusText().setMessage(heater, 2);
+		
+		if( isTempFirst && newStart )
+		{
+			if( Chamber_Temp <= 51)
+			{
+				startTime = 0;
+				currentTime = 0;
+				++longRunCount;
+				runReady = true;
+				newStart = false;
+			}
+			else
+			{
+				runReady = false;
+			}
+		}
+		
+		if( isTempFirst && runReady )
+		{
+			if( ((Chamber_Temp >= 55.0) && (Chamber_Temp <= 56.0)) && startFlag )
+			{
+				startTime = System.currentTimeMillis( );
+				startFlag = !startFlag;
+				currentFlag = !currentFlag;
+//				Functions.log( "[0] startTime = " + startTime );
+				System.out.println( "[0] startTime = " + startTime );
+			}
+			else if( ((Chamber_Temp <= 85.5) && (Chamber_Temp >= 84.5)) && currentFlag)
+			{
+				currentTime = System.currentTimeMillis( );
+				currentFlag = !currentFlag;
+				startFlag = !startFlag;
+//				Functions.log( "[0] currentTime = " + currentTime );
+				System.out.println( "[0] currentTime = " + currentTime );
+				delta = currentTime - startTime;
+//				Functions.log( String.format( "# Auto Run count: %d(delta=%d)\n", longRunCount, delta) );
+				System.out.println( String.format( "# Auto Run count: %d(delta=%d)\n", longRunCount, delta ) );
+//				Functions.log(  String.format( "%10d\t%10d", longRunCount, delta ) );
+				isTempFirst = !isTempFirst;
+				newStart = true;
+				runReady = false;
+			}
+		}
+		
+		if( !isTempFirst && newStart )
+		{
+			if( Chamber_Temp >= 90)
+			{
+				startTime = 0;
+				currentTime = 0;
+				runReady = true;
+				newStart = false;
+			}
+			else
+			{
+				runReady = false;
+			}
+		}
+		
+		if( !isTempFirst && runReady )
+		{
+			if( ((Chamber_Temp <= 85.5) && (Chamber_Temp >= 80.5)) && startFlag)
+			{
+				startTime = System.currentTimeMillis( );
+				startFlag = !startFlag;
+				currentFlag = !currentFlag;
+//				Functions.log( "[1] startTime = " + startTime );
+				System.out.println( "[1] startTime = " + startTime );
+			}
+			else if( ((Chamber_Temp <= 55.0) && (Chamber_Temp >= 50.0)) && currentFlag )
+			{
+				currentTime = System.currentTimeMillis( );
+				startFlag = !startFlag;
+				currentFlag = !currentFlag;
+//				Functions.log( "[1] currentTime = " + currentTime );
+				System.out.println( "[1] currentTime = " + currentTime );
+				_delta = currentTime - startTime;
+				System.out.println( String.format( "# Auto Run count: %d(delta=%d)\n", longRunCount, _delta ) );
+//				Functions.log(  String.format( "%10d\t%10d", longRunCount, delta ) );
+				if(longRunCount%1==0) Functions.log(  String.format( "%10d\t%10d\t%10d", longRunCount, delta, _delta ) );
+				isTempFirst = !isTempFirst;
+				newStart = true;
+				runReady = false;
+			}
+		}
 	}
 	
 	public void Check_Status()
