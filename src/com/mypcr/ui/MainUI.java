@@ -128,6 +128,8 @@ public class MainUI extends JFrame implements Handler, DeviceChange, KeyListener
 	private boolean isStartEndFlag = true;
 	private boolean isStopEndFlag = true;
 	
+	private String str_lid = "0";
+	
 	public boolean isTestMode(){
 		return isTestMode;
 	}
@@ -221,7 +223,7 @@ public class MainUI extends JFrame implements Handler, DeviceChange, KeyListener
 		m_LidText = new JTextField();
 		m_LidText.setLayout(null);
 		m_LidText.setBounds(310, 55, 40, 20);
-		m_LidText.setText("104");
+		m_LidText.setText(str_lid);
 		m_LidText.addKeyListener(this);
 		
 		// 로고 추가

@@ -15,23 +15,22 @@ import com.mypcr.ui.ProgressDialog;
 
 public class GoTimer extends TimerTask
 {
-	public static final int TIMER_DURATION	=	100;
-	public static final int TIMER_NUMBER	=	0x01;
+	public static final int	TIMER_DURATION = 100;
+	public static final int	TIMER_NUMBER   = 0x01;
 	
 	private static final int TIMEOUT_MS = 15000;
 	
-	private HIDDevice 		m_Device = null;
-	private MainUI 	  		m_Handler	= null;
-	private TxAction		m_TxAction	= null;
-	private Action[]		m_Actions = null;
-	private String			m_preheat = null;
-	private int				m_index = 0;
-	private int				m_protocol_length = 0;
-	private ProgressDialog 	m_dialog = null;
-	private boolean			isTaskEnd = false;
-	
-	private int 			timerCounter = 0;
-	private boolean			gotoEnded = false;
+	private HIDDevice	   m_Device			 = null;
+	private MainUI		   m_Handler		 = null;
+	private TxAction	   m_TxAction		 = null;
+	private Action[]	   m_Actions		 = null;
+	private String		   m_preheat		 = null;
+	private int			   m_index			 = 0;
+	private int			   m_protocol_length = 0;
+	private ProgressDialog m_dialog			 = null;
+	private boolean		   isTaskEnd		 = false;
+	private int			   timerCounter		 = 0;
+	private boolean		   gotoEnded		 = false;
 	
 	public GoTimer(HIDDevice device, Action[] actions, String preheat, MainUI handler)
 	{
@@ -82,6 +81,7 @@ public class GoTimer extends TimerTask
 					rx.get_Info( readBuffer );
 					
 					int label = 0, temp = 0, time_h = 0, time_l = 0, time = 0;
+					int time_1 = 0, time_2 = 0, time_3 = 0, time_4 = 0;
 					
 					if( m_Actions[m_index].getLabel().equals("GOTO"))
 						label = RxAction.AF_GOTO;
@@ -92,10 +92,19 @@ public class GoTimer extends TimerTask
 					time_h = (time/256)&0xff;
 					time_l = (time&0xff);
 					
+					time_1 = (time>>24) & 0xff;
+					time_2 = (time>>16) & 0xff;
+					time_3 = (time>>8) & 0xff;
+					time_4 = (time) & 0xff;
+					
 					if( rx.getLabel() == label && 
 						rx.getTemp() == temp &&
-						rx.getTime_H() == time_h &&
-						rx.getTime_L() == time_l && 
+//						rx.getTime_H() == time_h &&
+//						rx.getTime_L() == time_l && 
+						rx.getTime_1( ) == time_1 &&
+						rx.getTime_2( ) == time_2 &&
+						rx.getTime_3( ) == time_3 &&
+						rx.getTime_4( ) == time_4 &&
 						rx.getReqLine() == m_index){
 						Functions.log(String.format("데이터 전송(ProtocolWrite[%d/%d]) 확인 완료",  m_index+1, m_protocol_length));
 						m_index++;
