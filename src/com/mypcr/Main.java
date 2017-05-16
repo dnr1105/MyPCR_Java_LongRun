@@ -41,7 +41,8 @@ public class Main
 //		}
 		
 //		ui.setSerialNumber(args[0]);	// MyPCR333333
-		ui.setSerialNumber("MyPCR333333");
+//		ui.setSerialNumber("MyPCR333333");
+		ui.setSerialNumber("MyPCR000169");
 		Functions.logFileCreate( );
 		ui.Run();
 	}

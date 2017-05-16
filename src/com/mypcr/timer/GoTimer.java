@@ -78,7 +78,8 @@ public class GoTimer extends TimerTask
 				byte[] readBuffer = new byte[65];
 				if( m_Device.read(readBuffer) != 0 ){
 					RxAction rx = new RxAction();
-					rx.set_Info(readBuffer);
+					rx.set_Info( readBuffer );
+					rx.get_Info( readBuffer );
 					
 					int label = 0, temp = 0, time_h = 0, time_l = 0, time = 0;
 					
