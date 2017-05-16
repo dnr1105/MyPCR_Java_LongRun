@@ -5,19 +5,24 @@ public class TxAction
 {	
 	private byte[] Tx_Buffer;
 	
-	public static final int TX_BUFSIZE			=	65;
+	public static final int	TX_BUFSIZE			= 65;
 	
-	private static final int TX_CMD				=	1;
-	private static final int TX_ACTNO			=	2;
-	private static final int TX_TEMP			=	3;
-	private static final int TX_TIMEH			=	4;
-	private static final int TX_TIMEL			=	5;
-	private static final int TX_LIDTEMP			=	6;
-	private static final int TX_REQLINE			=	7;
-	private static final int TX_CURRENT_ACT_NO 	= 	8;
-	private static final int TX_BOOTLOADER		=	10;
+	public static final int	TX_CMD				= 1;
+	public static final int	TX_ACTNO			= 2;
+	public static final int	TX_TEMP				= 3;
+	public static final int	TX_TIMEH			= 4;
+	public static final int	TX_TIMEL			= 5;
+	public static final int	TX_LIDTEMP			= 6;
+	public static final int	TX_REQLINE			= 7;
+	public static final int	TX_CURRENT_ACT_NO	= 8;
+	public static final int	TX_BOOTLOADER		= 10;
 	
-	public static final int AF_GOTO				=	250;
+	public static final int	TX_TIME_1			= 51;		// time for 4byte
+	public static final int	TX_TIME_2			= 52;
+	public static final int	TX_TIME_3			= 53;
+	public static final int	TX_TIME_4			= 54;
+	
+	public static final int	AF_GOTO				= 250;
 	
 	public TxAction()
 	{
@@ -51,10 +56,26 @@ public class TxAction
 		Tx_Buffer[TX_TEMP] 		= (byte)ntemp; 
 		Tx_Buffer[TX_TIMEH] 	= (byte)(ntime/256.0);
 		Tx_Buffer[TX_TIMEL] 	= (byte)ntime;
+		
+//		Tx_Buffer[TX_TIME_1]	= (byte)(ntime>>24);		// Time for 4byte
+//		Tx_Buffer[TX_TIME_2]	= (byte)(ntime>>16);
+//		Tx_Buffer[TX_TIME_3]	= (byte)(ntime>>8);
+//		Tx_Buffer[TX_TIME_4]	= (byte)(ntime);
+		Tx_Buffer[TX_TIME_1]	= (byte)(ntime/16777216.0);	// Time for 4byte
+//		System.out.println( (byte)(ntime/16777216.0) );
+		Tx_Buffer[TX_TIME_2]	= (byte)(ntime/65536.0);
+//		System.out.println( (byte)(ntime/65536.0) );
+		Tx_Buffer[TX_TIME_3]	= (byte)(ntime/256.0);
+//		System.out.println( (byte)(ntime/256.0) );
+		Tx_Buffer[TX_TIME_4]	= (byte)(ntime/1.0);
+//		System.out.println( (byte)(ntime/1.0) );
+//		System.out.println( "-------------------------------" );
+		
 		Tx_Buffer[TX_LIDTEMP] 	= (byte)npreheat;
 		Tx_Buffer[TX_CURRENT_ACT_NO] = (byte)currentActNo;
-		Tx_Buffer[TX_REQLINE] = (byte)currentActNo;
+		Tx_Buffer[TX_REQLINE]	= (byte)currentActNo;
 		
+		get_Info( Tx_Buffer );
 		return Tx_Buffer;
 	}
 	
@@ -91,5 +112,23 @@ public class TxAction
 		Tx_Clear();
 		Tx_Buffer[TX_REQLINE] = reqline;
 		return Tx_Buffer;
+	}
+	
+	public void get_Info(byte[] buffer)
+	{
+		System.out.printf("%s\t\t: %d\n", "TX_CMD", buffer[TX_CMD]);
+		System.out.printf("%s\t: %d\n", "TX_ACTNO", buffer[TX_ACTNO]);
+		System.out.printf("%s\t\t: %d\n", "TX_TEMP", buffer[TX_TEMP]);
+		System.out.printf("%s\t: %d\n", "TX_TIMEH", buffer[TX_TIMEH]);
+		System.out.printf("%s\t: %d\n", "TX_TIMEL", buffer[TX_TIMEL]);
+		System.out.printf("%s\t: %d\n", "TX_LIDTEMP", buffer[TX_LIDTEMP]);
+		System.out.printf("%s\t: %d\n", "TX_REQLINE", buffer[TX_REQLINE]);
+		System.out.printf("%s\t: %d\n", "TX_CURRENT_ACT_NO", buffer[TX_CURRENT_ACT_NO]);
+		System.out.printf("%s\t: %d\n", "TX_BOOTLOADER", buffer[TX_BOOTLOADER]);
+		System.out.printf("%s\t: %d\n", "TX_TIME_1", buffer[TX_TIME_1]);
+		System.out.printf("%s\t: %d\n", "TX_TIME_2", buffer[TX_TIME_2]);
+		System.out.printf("%s\t: %d\n", "TX_TIME_3", buffer[TX_TIME_3]);
+		System.out.printf("%s\t: %d\n", "TX_TIME_4", buffer[TX_TIME_4]);
+		System.out.println( "-----------------------------" );
 	}
 }
