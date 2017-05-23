@@ -240,7 +240,7 @@ public class PCR_Task
 				_delta = currentTime - startTime;
 				System.out.println( String.format( "# Auto Run count: %d(delta=%d)\n", longRunCount, _delta ) );
 //				Functions.log(  String.format( "%10d\t%10d", longRunCount, delta ) );
-				if(longRunCount%1==0) Functions.log(  String.format( "%10d\t%10d\t%10d", longRunCount, delta, _delta ) );
+				if(longRunCount%10==0) Functions.log(  String.format( "%10d\t%10d\t%10d", longRunCount, delta, _delta ) );
 				isDelta = !isDelta;
 				newStart = true;
 				runReady = false;
