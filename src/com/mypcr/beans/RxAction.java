@@ -16,7 +16,7 @@ public class RxAction
 	private int Error;
 	private int Serial_H;
 	private int Serial_L;
-	private int Total_TimeLeft;
+	private long Total_TimeLeft;
 	private double Sec_TimeLeft;
 	private int Firmware_Version;
 	
@@ -30,6 +30,14 @@ public class RxAction
 	private boolean IsReceiveOnce = false;
 	
 	// time for 4byte
+	private long left_time_q;
+	private long left_time_h;
+	private long left_time_l;
+	
+	private int kp;
+	private int ki;
+	private int kd;
+	
 	private int time_1;
 	private int time_2;
 	private int time_3;
@@ -79,6 +87,7 @@ public class RxAction
 	public static final int	RX_TIME_2		= 51;
 	public static final int	RX_TIME_3		= 52;
 	public static final int	RX_TIME_4		= 53;
+	
 	public static final int	RX_LEFTTIMEQ	= 54;
 	public static final int	RX_LEFTSECTIMEQ	= 55;
 	
@@ -108,6 +117,12 @@ public class RxAction
 		Time_L = 0;
 		ReqLine = 0;
 		
+		left_time_q = 0;
+		left_time_h = 0;
+		left_time_l = 0;
+		kp = 0;
+		ki = 0;
+		kd = 0;
 		time_1 = 0;
 		time_2 = 0;
 		time_3 = 0;
@@ -117,43 +132,77 @@ public class RxAction
 
 	public void set_Info(byte[] buffer)
 	{
-		State 				= (int)(buffer[RX_STATE]&0xff);
-		Current_Action 		= (int)(buffer[RX_CURRENTACTNO]&0xff);
-		Current_Loop		= (int)(buffer[RX_CURRENTLOOP]&0xff);
-		Total_Action		= (int)(buffer[RX_TOTALACTNO]&0xff);
-		Total_TimeLeft		= (int) ( ( buffer[RX_LEFTTIMEQ] & 0xff ) * 65536 
-									+ ( buffer[RX_LEFTTIMEH] & 0xff ) * 256
-									+ ( buffer[RX_LEFTTIMEL] & 0xff ) );
-		Sec_TimeLeft		= (double) ( ( buffer[RX_LEFTSECTIMEQ] & 0xff ) * 65536 
-									+ buffer[RX_LEFTSECTIMEH] & 0xff ) * 256
-									+ (double) ( buffer[RX_LEFTSECTIMEL] & 0xff );
+		State 				= (int)(buffer[RX_STATE] & 0xff);
+		Current_Action 		= (int)(buffer[RX_CURRENTACTNO] & 0xff);
+		Current_Loop		= (int)(buffer[RX_CURRENTLOOP] & 0xff);
+		Total_Action		= (int)(buffer[RX_TOTALACTNO] & 0xff);
+		kp					= (int)(buffer[RX_KP] & 0xff);
+		ki					= (int)(buffer[RX_KI] & 0xff);
+		kd					= (int)(buffer[RX_KD] & 0xff);
+		
+		left_time_q			= (long)( buffer[RX_LEFTTIMEQ]);
+		left_time_h			= (long)( buffer[RX_LEFTTIMEH]);
+		left_time_l			= (long)( buffer[RX_LEFTTIMEL]);
+		
+		Total_TimeLeft		= (long)( (( buffer[RX_LEFTTIMEQ] & 0xff ) << 16)
+                    				+ (( buffer[RX_LEFTTIMEH] & 0xff) << 8 )
+                    				+ ( buffer[RX_LEFTTIMEL] & 0xff ) );
+		
+		Sec_TimeLeft		= (double) ( (( buffer[RX_LEFTSECTIMEQ] & 0xff ) << 16)
+									+ ((buffer[RX_LEFTSECTIMEH] & 0xff ) << 8)
+									+ ( buffer[RX_LEFTSECTIMEL] & 0xff ));
+		
 		Cover_TempH			= (int)(buffer[RX_LIDTEMPH] & 0xff);
 		Cover_TempL			= (int)(buffer[RX_LIDTEMPL] & 0xff);
 		Chamber_TempH		= (int)(buffer[RX_CHMTEMPH] & 0xff);
-		Chamber_TempL		= (int)(buffer[RX_CHMTEMPL]&0xff);
-		Heatsink_TempH		= (int)(buffer[RX_SINKTEMPH]&0xff);
-		Heatsink_TempL		= (int)(buffer[RX_SINKTEMPL]&0xff);
-		Current_Operation	= (int)(buffer[RX_CUR_OPR]&0xff);
-		Error				= (int)(buffer[RX_ERROR]&0xff);
-		Serial_H			= (int)(buffer[RX_SERIALH]&0xff);
-		Serial_L			= (int)(buffer[RX_SERIALL]&0xff);
-		Firmware_Version	= (int)(buffer[RX_VERSION]&0xff);
-		Label 				= (int)(buffer[RX_LABEL]&0xff);
-		Temp				= (int)(buffer[RX_TEMP]&0xff);
-		Time_H				= (int)(buffer[RX_TIMEH]&0xff);
-		Time_L				= (int)(buffer[RX_TIMEL]&0xff);
-		ReqLine				= (int)(buffer[RX_REQLINE]&0xff);
+		Chamber_TempL		= (int)(buffer[RX_CHMTEMPL] & 0xff);
+		Heatsink_TempH		= (int)(buffer[RX_SINKTEMPH] & 0xff);
+		Heatsink_TempL		= (int)(buffer[RX_SINKTEMPL] & 0xff);
+		Current_Operation	= (int)(buffer[RX_CUR_OPR] & 0xff);
+		Error				= (int)(buffer[RX_ERROR] & 0xff);
+		Serial_H			= (int)(buffer[RX_SERIALH] & 0xff);
+		Serial_L			= (int)(buffer[RX_SERIALL] & 0xff);
+		Firmware_Version	= (int)(buffer[RX_VERSION] & 0xff);
+		Label 				= (int)(buffer[RX_LABEL] & 0xff);
+		Temp				= (int)(buffer[RX_TEMP] & 0xff);
+		Time_H				= (int)(buffer[RX_TIMEH] & 0xff);
+		Time_L				= (int)(buffer[RX_TIMEL] & 0xff);
+		ReqLine				= (int)(buffer[RX_REQLINE] & 0xff);
 		
 		time_1				= (int)(buffer[RX_TIME_1] & 0xff);
 		time_2				= (int)(buffer[RX_TIME_2] & 0xff);
 		time_3				= (int)(buffer[RX_TIME_3] & 0xff);
 		time_4				= (int)(buffer[RX_TIME_4] & 0xff);
-		total_time			= (int)((buffer[RX_TIME_1] & 0xff)*16777216)
-							+(int)((buffer[RX_TIME_2] & 0xff)*65536)
-							+(int)((buffer[RX_TIME_3] & 0xff)*256)
-							+(int)((buffer[RX_TIME_4] & 0xff)*1);
+		total_time			= (int)(((buffer[RX_TIME_1] & 0xff) << 24)
+							+ ((buffer[RX_TIME_2] & 0xff) << 16)
+							+ ((buffer[RX_TIME_3] & 0xff) << 8)
+							+ ((buffer[RX_TIME_4] & 0xff) ));
+//		total_time			= (int)(((buffer[RX_TIME_1] & 0xff) * 16777216)
+//                				+ ((int)(buffer[RX_TIME_2] & 0xff) * 65536)
+//                				+ ((int)(buffer[RX_TIME_3] & 0xff) * 256)
+//                				+ ((int)(buffer[RX_TIME_4] & 0xff) ));
 		
 		IsReceiveOnce = true;
+	}
+	
+	public int ki()
+	{
+		return this.ki;
+	}
+	
+	public long getLefttime_Q()
+	{
+		return this.left_time_q;
+	}
+	
+	public long getLefttime_H()
+	{
+		return this.left_time_h;
+	}
+	
+	public long getLefttime_L()
+	{
+		return this.left_time_l;
 	}
 
 	public boolean IsValidBuffer()
@@ -226,7 +275,7 @@ public class RxAction
 		return Error;
 	}
 
-	public int getTotal_TimeLeft()
+	public long getTotal_TimeLeft()
 	{
 		return Total_TimeLeft;
 	}
@@ -308,50 +357,51 @@ public class RxAction
 //			System.out.println( i+"\t: "+buffer[i] );
 //		}
 		
-		System.out.printf("%s\t: %d\n", "RX_STATE", buffer[RX_STATE]);
-		System.out.printf("%s\t\t: %d\n", "RX_RES", buffer[RX_RES]);
-		System.out.printf("%s\t: %d\n", "RX_CURRENTACTNO", buffer[RX_CURRENTACTNO]);
-		System.out.printf("%s\t: %d\n", "RX_CURRENTLOOP", buffer[RX_CURRENTLOOP]);
-		System.out.printf("%s\t: %d\n", "RX_TOTALACTNO", buffer[RX_TOTALACTNO]);
-		System.out.printf("%s\t\t: %d\n", "RX_KP", buffer[RX_KP]);
-		System.out.printf("%s\t\t: %d\n", "RX_KI", buffer[RX_KI]);
-		System.out.printf("%s\t\t: %d\n", "RX_KD", buffer[RX_KD]);
-		System.out.printf("%s\t: %d\n", "RX_LEFTTIMEQ", buffer[RX_LEFTTIMEQ]);
-		System.out.printf("%s\t: %d\n", "RX_LEFTTIMEH", buffer[RX_LEFTTIMEH]);
-		System.out.printf("%s\t: %d\n", "RX_LEFTTIMEL", buffer[RX_LEFTTIMEL]);
-		System.out.printf("%s\t: %d\n", "RX_LEFTSECTIMEQ", buffer[RX_LEFTSECTIMEQ]);
-		System.out.printf("%s\t: %d\n", "RX_LEFTSECTIMEH", buffer[RX_LEFTSECTIMEH]);
-		System.out.printf("%s\t: %d\n", "RX_LEFTSECTIMEL", buffer[RX_LEFTSECTIMEL]);
-		System.out.printf("%s\t: %d\n", "RX_LIDTEMPH", buffer[RX_LIDTEMPH]);
-		System.out.printf("%s\t: %d\n", "RX_LIDTEMPL", buffer[RX_LIDTEMPL]);
-		System.out.printf("%s\t: %d\n", "RX_CHMTEMPH", buffer[RX_CHMTEMPH]);
-		System.out.printf("%s\t: %d\n", "RX_CHMTEMPL", buffer[RX_CHMTEMPL]);
-		System.out.printf("%s\t\t: %d\n", "RX_PWMH", buffer[RX_PWMH]);
-		System.out.printf("%s\t\t: %d\n", "RX_PWML", buffer[RX_PWML]);
-		System.out.printf("%s\t: %d\n", "RX_PWMDIR", buffer[RX_PWMDIR]);
-		System.out.printf("%s\t: %d\n", "RX_LABEL", buffer[RX_LABEL]);
-		System.out.printf("%s\t\t: %d\n", "RX_TEMP", buffer[RX_TEMP]);
-		System.out.printf("%s\t: %d\n", "RX_TIMEH", buffer[RX_TIMEH]);
-		System.out.printf("%s\t: %d\n", "RX_TIMEL", buffer[RX_TIMEL]);
-		System.out.printf("%s\t: %d\n", "RX_LIDTEMP", buffer[RX_LIDTEMP]);
-		System.out.printf("%s\t: %d\n", "RX_REQLINE", buffer[RX_REQLINE]);
-		System.out.printf("%s\t: %d\n", "RX_ERROR", buffer[RX_ERROR]);
-		System.out.printf("%s\t: %d\n", "RX_CUR_OPR", buffer[RX_CUR_OPR]);
-		System.out.printf("%s\t: %d\n", "RX_SINKTEMPH", buffer[RX_SINKTEMPH]);
-		System.out.printf("%s\t: %d\n", "RX_SINKTEMPL", buffer[RX_SINKTEMPL]);
-		System.out.printf("%s\t\t: %d\n", "RX_KP_1", buffer[RX_KP_1]);
-		System.out.printf("%s\t\t: %d\n", "RX_KI_1", buffer[RX_KI_1]);
-		System.out.printf("%s\t\t: %d\n", "RX_KD_1", buffer[RX_KD_1]);
-		System.out.printf("%s\t: %d\n", "RX_SERIALH", buffer[RX_SERIALH]);
-		System.out.printf("%s\t: %d\n", "RX_SERIALL", buffer[RX_SERIALL]);
-		System.out.printf("%s\t: %d\n", "RX_SERIALRESERV", buffer[RX_SERIALRESERV]);
+		System.out.println( "--------------- RX --------------" );
+		System.out.printf("%s\t: %d\n", "RX_STATE", (short)buffer[RX_STATE]);
+		System.out.printf("%s\t\t: %d\n", "RX_RES", (int)buffer[RX_RES]);
+		System.out.printf("%s\t: %d\n", "RX_CURRENTACTNO", (int)buffer[RX_CURRENTACTNO]);
+		System.out.printf("%s\t: %d\n", "RX_CURRENTLOOP", (int)buffer[RX_CURRENTLOOP]);
+		System.out.printf("%s\t: %d\n", "RX_TOTALACTNO", (int)buffer[RX_TOTALACTNO]);
+		System.out.printf("%s\t\t: %d\n", "RX_KP", (int)buffer[RX_KP]);
+		System.out.printf("%s\t\t: %d\n", "RX_KI", (int)(buffer[RX_KI]));
+		System.out.printf("%s\t\t: %d\n", "RX_KD", (int)buffer[RX_KD]);
+		System.out.printf("%s\t: %d\n", "RX_LEFTTIMEQ", (int)buffer[RX_LEFTTIMEQ]);
+		System.out.printf("%s\t: %d\n", "RX_LEFTTIMEH", (int)buffer[RX_LEFTTIMEH]);
+		System.out.printf("%s\t: %d\n", "RX_LEFTTIMEL", (int)buffer[RX_LEFTTIMEL]);
+		System.out.printf("%s\t: %d\n", "RX_LEFTSECTIMEQ", (int)buffer[RX_LEFTSECTIMEQ]);
+		System.out.printf("%s\t: %d\n", "RX_LEFTSECTIMEH", (int)buffer[RX_LEFTSECTIMEH]);
+		System.out.printf("%s\t: %d\n", "RX_LEFTSECTIMEL", (int)buffer[RX_LEFTSECTIMEL]);
+		System.out.printf("%s\t: %d\n", "RX_LIDTEMPH", (int)buffer[RX_LIDTEMPH]);
+		System.out.printf("%s\t: %d\n", "RX_LIDTEMPL", (int)buffer[RX_LIDTEMPL]);
+		System.out.printf("%s\t: %d\n", "RX_CHMTEMPH", (int)buffer[RX_CHMTEMPH]);
+		System.out.printf("%s\t: %d\n", "RX_CHMTEMPL", (int)buffer[RX_CHMTEMPL]);
+		System.out.printf("%s\t\t: %d\n", "RX_PWMH", (int)buffer[RX_PWMH]);
+		System.out.printf("%s\t\t: %d\n", "RX_PWML", (int)buffer[RX_PWML]);
+		System.out.printf("%s\t: %d\n", "RX_PWMDIR", (int)buffer[RX_PWMDIR]);
+		System.out.printf("%s\t: %d\n", "RX_LABEL", (int)buffer[RX_LABEL]);
+		System.out.printf("%s\t\t: %d\n", "RX_TEMP", (int)buffer[RX_TEMP]);
+		System.out.printf("%s\t: %d\n", "RX_TIMEH", (int)buffer[RX_TIMEH]);
+		System.out.printf("%s\t: %d\n", "RX_TIMEL", (int)buffer[RX_TIMEL]);
+		System.out.printf("%s\t: %d\n", "RX_LIDTEMP", (int)buffer[RX_LIDTEMP]);
+		System.out.printf("%s\t: %d\n", "RX_REQLINE", (int)buffer[RX_REQLINE]);
+		System.out.printf("%s\t: %d\n", "RX_ERROR", (int)buffer[RX_ERROR]);
+		System.out.printf("%s\t: %d\n", "RX_CUR_OPR", (int)buffer[RX_CUR_OPR]);
+		System.out.printf("%s\t: %d\n", "RX_SINKTEMPH", (int)buffer[RX_SINKTEMPH]);
+		System.out.printf("%s\t: %d\n", "RX_SINKTEMPL", (int)buffer[RX_SINKTEMPL]);
+		System.out.printf("%s\t\t: %d\n", "RX_KP_1", (int)buffer[RX_KP_1]);
+		System.out.printf("%s\t\t: %d\n", "RX_KI_1", (int)buffer[RX_KI_1]);
+		System.out.printf("%s\t\t: %d\n", "RX_KD_1", (int)buffer[RX_KD_1]);
+		System.out.printf("%s\t: %d\n", "RX_SERIALH", (int)buffer[RX_SERIALH]);
+		System.out.printf("%s\t: %d\n", "RX_SERIALL", (int)buffer[RX_SERIALL]);
+		System.out.printf("%s\t: %d\n", "RX_SERIALRESERV", (int)buffer[RX_SERIALRESERV]);
 		
-		System.out.printf("%s\t: %d\n", "RX_VERSION", buffer[RX_VERSION]);
+		System.out.printf("%s\t: %d\n", "RX_VERSION", (int)buffer[RX_VERSION]);
 		
-		System.out.printf("%s\t: %d\n", "RX_TIME_1", buffer[RX_TIME_1]);
-		System.out.printf("%s\t: %d\n", "RX_TIME_2", buffer[RX_TIME_2]);
-		System.out.printf("%s\t: %d\n", "RX_TIME_3", buffer[RX_TIME_3]);
-		System.out.printf("%s\t: %d\n", "RX_TIME_4", buffer[RX_TIME_4]);
+		System.out.printf("%s\t: %d\n", "RX_TIME_1", (int)buffer[RX_TIME_1]);
+		System.out.printf("%s\t: %d\n", "RX_TIME_2", (int)buffer[RX_TIME_2]);
+		System.out.printf("%s\t: %d\n", "RX_TIME_3", (int)buffer[RX_TIME_3]);
+		System.out.printf("%s\t: %d\n", "RX_TIME_4", (int)buffer[RX_TIME_4]);
 		System.out.println( "-----------------------------" );
 	}
 }

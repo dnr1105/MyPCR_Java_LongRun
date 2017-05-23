@@ -54,22 +54,20 @@ public class TxAction
 		Tx_Buffer[TX_CMD] 		= Command.TASK_WRITE;
 		Tx_Buffer[TX_ACTNO] 	= (byte)nlabel;
 		Tx_Buffer[TX_TEMP] 		= (byte)ntemp; 
-		Tx_Buffer[TX_TIMEH] 	= (byte)(ntime/256.0);
-		Tx_Buffer[TX_TIMEL] 	= (byte)ntime;
+//		Tx_Buffer[TX_TIMEH] 	= (byte)(ntime/256.0);
+//		Tx_Buffer[TX_TIMEL] 	= (byte)ntime;
+//		Tx_Buffer[TX_TIMEH] 	= (byte)-1;
+//		Tx_Buffer[TX_TIMEL] 	= (byte)-1;
 		
-//		Tx_Buffer[TX_TIME_1]	= (byte)(ntime>>24);		// Time for 4byte
-//		Tx_Buffer[TX_TIME_2]	= (byte)(ntime>>16);
-//		Tx_Buffer[TX_TIME_3]	= (byte)(ntime>>8);
+//		Tx_Buffer[TX_TIME_1]	= (byte)((ntime>>24) & 0xff);		// Time for 4byte
+//		Tx_Buffer[TX_TIME_2]	= (byte)((ntime>>16) & 0xff);
+//		Tx_Buffer[TX_TIME_3]	= (byte)((ntime>>8) & 0xff);
 //		Tx_Buffer[TX_TIME_4]	= (byte)(ntime);
-		Tx_Buffer[TX_TIME_1]	= (byte)(ntime/16777216.0);	// Time for 4byte
-//		System.out.println( (byte)(ntime/16777216.0) );
-		Tx_Buffer[TX_TIME_2]	= (byte)(ntime/65536.0);
-//		System.out.println( (byte)(ntime/65536.0) );
-		Tx_Buffer[TX_TIME_3]	= (byte)(ntime/256.0);
-//		System.out.println( (byte)(ntime/256.0) );
-		Tx_Buffer[TX_TIME_4]	= (byte)(ntime/1.0);
-//		System.out.println( (byte)(ntime/1.0) );
-//		System.out.println( "-------------------------------" );
+		
+		Tx_Buffer[TX_TIME_1]	= (byte)(ntime/16777216);	// Time for 4byte
+		Tx_Buffer[TX_TIME_2]	= (byte)(ntime/65536);
+		Tx_Buffer[TX_TIME_3]	= (byte)(ntime/256);
+		Tx_Buffer[TX_TIME_4]	= (byte)(ntime);
 		
 		Tx_Buffer[TX_LIDTEMP] 	= (byte)npreheat;
 		Tx_Buffer[TX_CURRENT_ACT_NO] = (byte)currentActNo;
@@ -116,6 +114,8 @@ public class TxAction
 	
 	public void get_Info(byte[] buffer)
 	{
+		
+		System.out.println( "--------------- TX --------------" );
 		System.out.printf("%s\t\t: %d\n", "TX_CMD", buffer[TX_CMD]);
 		System.out.printf("%s\t: %d\n", "TX_ACTNO", buffer[TX_ACTNO]);
 		System.out.printf("%s\t\t: %d\n", "TX_TEMP", buffer[TX_TEMP]);
@@ -129,6 +129,6 @@ public class TxAction
 		System.out.printf("%s\t: %d\n", "TX_TIME_2", buffer[TX_TIME_2]);
 		System.out.printf("%s\t: %d\n", "TX_TIME_3", buffer[TX_TIME_3]);
 		System.out.printf("%s\t: %d\n", "TX_TIME_4", buffer[TX_TIME_4]);
-		System.out.println( "-----------------------------" );
+		System.out.println( "---------------------------------" );
 	}
 }

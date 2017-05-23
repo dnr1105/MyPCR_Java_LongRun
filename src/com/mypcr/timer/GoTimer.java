@@ -89,13 +89,30 @@ public class GoTimer extends TimerTask
 						label = Integer.parseInt(m_Actions[m_index].getLabel());
 					temp = Integer.parseInt(m_Actions[m_index].getTemp());
 					time = Integer.parseInt(m_Actions[m_index].getTime());
-					time_h = (time/256)&0xff;
-					time_l = (time&0xff);
+//					time_h = (time/256)&0xff;
+//					time_l = (time&0xff);
 					
 					time_1 = (time>>24) & 0xff;
 					time_2 = (time>>16) & 0xff;
 					time_3 = (time>>8) & 0xff;
 					time_4 = (time) & 0xff;
+					
+//					time_1 = (time/16777216) & 0xff;
+//					time_2 = (time/65536) & 0xff;
+//					time_3 = (time/256) & 0xff;
+//					time_4 = (time) & 0xff;
+					
+					System.out.println( "\t------------------------------" );
+					short rxTimeTemp_1 = (short)rx.getTime_1( );
+					System.out.println( "\tTimeTemp_1\t: "+ rxTimeTemp_1);
+					short rxTimeTemp_2 = (short)rx.getTime_2( );
+					System.out.println( "\tTimeTemp_2\t: "+ rxTimeTemp_2);
+					short rxTimeTemp_3 = (short)rx.getTime_3( );
+					System.out.println( "\tTimeTemp_3\t: "+ rxTimeTemp_3);
+					short rxTimeTemp_4 = (short)rx.getTime_4( );
+					System.out.println( "\tTimeTemp_4\t: "+ rxTimeTemp_4);
+					System.out.printf( "\t%d, %d, %d, %d\n", time_1, time_2, time_3, time_4 );
+					System.out.println( "\t------------------------------" );
 					
 					if( rx.getLabel() == label && 
 						rx.getTemp() == temp &&

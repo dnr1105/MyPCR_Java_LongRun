@@ -28,15 +28,18 @@ public class PCR_Task
 	private static MainUI m_MainUI = null;
 	
 	// 에러 메시지 종류
-	private static final int ERROR_LID_OVER			=	0x01;
-	private static final int ERROR_CHM_OVER 		=	0x02;
-	private static final int ERROR_LID_CHM_OVER		=	0x03;
-	private static final int ERROR_HEATSINK_OVER	=	0x04;
-	private static final int ERROR_LID_HEATSINK_OVER=	0x05;
-	private static final int ERROR_CHM_HEATSINK_OVER=	0x06;
-	private static final int ERROR_ALL				=	0x07;
-	private static final int ERROR_TEMP_SENSOR		=	0x08;
-	private static final int ERROR_ALL_SYSTEM		=	0x0f;
+	private static final int ERROR_LID_OVER			 = 0x01;
+	private static final int ERROR_CHM_OVER			 = 0x02;
+	private static final int ERROR_LID_CHM_OVER		 = 0x03;
+	private static final int ERROR_HEATSINK_OVER	 = 0x04;
+	private static final int ERROR_LID_HEATSINK_OVER = 0x05;
+	private static final int ERROR_CHM_HEATSINK_OVER = 0x06;
+	private static final int ERROR_ALL				 = 0x07;
+	private static final int ERROR_TEMP_SENSOR		 = 0x08;
+	private static final int ERROR_ALL_SYSTEM		 = 0x0f;
+	
+	private static final int deltaTemp	= 50;
+	private static final int _deltaTemp	= 95;
 	
 	// Timer 를 사용하기 위한 객체
 	private Timer m_NopTimer = null;
@@ -131,9 +134,12 @@ public class PCR_Task
 	int targetCount = 0;
 	boolean startFlag = true;
 	boolean currentFlag = false;
-	boolean isTempFirst = true; // true = d, false = _d
+	boolean isDelta = true; // true = d, false = _d
 	boolean runReady = false;
 	boolean newStart = true;
+	
+	public static double toDeltaTemp = ( (_deltaTemp - deltaTemp) * 0.1 + deltaTemp );
+	public static double to_DeltaTemp = ( (_deltaTemp - deltaTemp) * 0.9 + deltaTemp );
 	
 	public void Calc_Temp()
 	{
@@ -145,10 +151,13 @@ public class PCR_Task
 		m_MainUI.getStatusText().setMessage(chamber, 1);
 		m_MainUI.getStatusText().setMessage(heater, 2);
 		
-		if( isTempFirst && newStart )
+		if( isDelta && newStart )
 		{
-			if( Chamber_Temp <= 51)
+			// 첫 온도값보다 온도가 높으면 StartTime이 기록되지 않는 것을 방지하기 위함 (+-2)
+			if( Chamber_Temp <= deltaTemp + 1)
 			{
+				System.out.println( "1. Flag in: "+ Chamber_Temp);
+				// 첫 설정 온도보다 낮다면 runReady flag를 시작
 				startTime = 0;
 				currentTime = 0;
 				++longRunCount;
@@ -161,37 +170,43 @@ public class PCR_Task
 			}
 		}
 		
-		if( isTempFirst && runReady )
+		// delta, _delta를 구분하기 위한 플래그 isDelta
+		if( isDelta && runReady )
 		{
-			if( ((Chamber_Temp >= 55.0) && (Chamber_Temp <= 56.0)) && startFlag )
+			// 온도값이 여러번 기록되는 것과 StartTime을 기록하기 위함
+			// 17.5 이상, 19.5 이하 (+-1)
+			if( ( ( Chamber_Temp >= toDeltaTemp - 1 ) && ( Chamber_Temp <= toDeltaTemp + 1 ) ) && startFlag )
 			{
 				startTime = System.currentTimeMillis( );
 				startFlag = !startFlag;
 				currentFlag = !currentFlag;
 //				Functions.log( "[0] startTime = " + startTime );
-				System.out.println( "[0] startTime = " + startTime );
+				System.out.println( "[0] startTime = " + startTime + ", " + Chamber_Temp );
 			}
-			else if( ((Chamber_Temp <= 85.5) && (Chamber_Temp >= 84.5)) && currentFlag)
+			// 85.5 이상, 87.5 이하 (+-1)
+			else if( ( ( Chamber_Temp <= to_DeltaTemp + 1 ) && ( Chamber_Temp >= to_DeltaTemp - 1 ) ) && currentFlag )
 			{
 				currentTime = System.currentTimeMillis( );
 				currentFlag = !currentFlag;
 				startFlag = !startFlag;
 //				Functions.log( "[0] currentTime = " + currentTime );
-				System.out.println( "[0] currentTime = " + currentTime );
+				System.out.println( "[0] currentTime = " + currentTime + ", " + Chamber_Temp );
 				delta = currentTime - startTime;
 //				Functions.log( String.format( "# Auto Run count: %d(delta=%d)\n", longRunCount, delta) );
 				System.out.println( String.format( "# Auto Run count: %d(delta=%d)\n", longRunCount, delta ) );
 //				Functions.log(  String.format( "%10d\t%10d", longRunCount, delta ) );
-				isTempFirst = !isTempFirst;
+				isDelta = !isDelta;
 				newStart = true;
 				runReady = false;
 			}
 		}
 		
-		if( !isTempFirst && newStart )
+		if( !isDelta && newStart )
 		{
-			if( Chamber_Temp >= 90)
+			// 온도가 95도까지 미처 도달하지 못했을때를 방지
+			if( Chamber_Temp >= _deltaTemp - 1)
 			{
+				System.out.println( "2. Flag in: "+ Chamber_Temp);
 				startTime = 0;
 				currentTime = 0;
 				runReady = true;
@@ -203,28 +218,30 @@ public class PCR_Task
 			}
 		}
 		
-		if( !isTempFirst && runReady )
+		if( !isDelta && runReady )
 		{
-			if( ((Chamber_Temp <= 85.5) && (Chamber_Temp >= 80.5)) && startFlag)
+			// 85.5 이상, 87.5 이하 (+-1)
+			if( ( ( Chamber_Temp <= to_DeltaTemp + 1 ) && ( Chamber_Temp >= to_DeltaTemp - 1 ) ) && startFlag )
 			{
 				startTime = System.currentTimeMillis( );
 				startFlag = !startFlag;
 				currentFlag = !currentFlag;
 //				Functions.log( "[1] startTime = " + startTime );
-				System.out.println( "[1] startTime = " + startTime );
+				System.out.println( "[1] startTime = " + startTime + ", " + Chamber_Temp );
 			}
-			else if( ((Chamber_Temp <= 55.0) && (Chamber_Temp >= 50.0)) && currentFlag )
+			// 17.5 이상, 19.5 이하 (+-1)
+			else if( ( ( Chamber_Temp >= toDeltaTemp - 1 ) && ( Chamber_Temp <= toDeltaTemp + 1 ) ) && currentFlag )
 			{
 				currentTime = System.currentTimeMillis( );
 				startFlag = !startFlag;
 				currentFlag = !currentFlag;
 //				Functions.log( "[1] currentTime = " + currentTime );
-				System.out.println( "[1] currentTime = " + currentTime );
+				System.out.println( "[1] currentTime = " + currentTime + ", " + Chamber_Temp );
 				_delta = currentTime - startTime;
 				System.out.println( String.format( "# Auto Run count: %d(delta=%d)\n", longRunCount, _delta ) );
 //				Functions.log(  String.format( "%10d\t%10d", longRunCount, delta ) );
 				if(longRunCount%1==0) Functions.log(  String.format( "%10d\t%10d\t%10d", longRunCount, delta, _delta ) );
-				isTempFirst = !isTempFirst;
+				isDelta = !isDelta;
 				newStart = true;
 				runReady = false;
 			}
@@ -487,7 +504,11 @@ public class PCR_Task
 								action.setLabel("GOTO");
 							
 							action.setTemp("" + tempAction.getTemp());
-							int time = ((int)(tempAction.getTime_H()*256.) + (int)(tempAction.getTime_L()));
+//							int time = ((int)(tempAction.getTime_H()*256.) + (int)(tempAction.getTime_L()));
+							int time = ((int)(tempAction.getTime_1( ) * 16777216.)
+									+(int)(tempAction.getTime_2( ) * 65536.)
+									+(int)(tempAction.getTime_3( ) * 256.)
+									+(int)(tempAction.getTime_4( )));
 							action.setTime("" + time);
 							
 							actions.add(action);
@@ -596,7 +617,12 @@ public class PCR_Task
 	public void Calc_Time()
 	{
 		int hour, minute, second;
-		int totalTime = m_RxAction.getTotal_TimeLeft();
+		long totalTime = m_RxAction.getTotal_TimeLeft();
+//		System.out.println( "totalTime: "+totalTime );
+//		System.out.println( "LEFTTIME Q: "+m_RxAction.getLefttime_Q( ) );
+//		System.out.println( "LEFTTIME H: "+m_RxAction.getLefttime_H( ) );
+//		System.out.println( "LEFTTIME L: "+m_RxAction.getLefttime_L( ) );
+//		System.out.println( "rx_time_3: "+m_RxAction.ki( ) );
 		
 		switch( m_RxAction.getState() )
 		{
@@ -621,8 +647,8 @@ public class PCR_Task
 		
 		if( Timer_Counter % 5 == 0 )
 		{
-			second = totalTime % 60;
-			minute = totalTime / 60;
+			second = (int)( totalTime % 60 );
+			minute = (int)( totalTime / 60 );
 			hour = minute / 60;
 			minute = minute - hour * 60;
 			
